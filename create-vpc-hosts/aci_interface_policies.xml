@@ -1,0 +1,154 @@
+
+<polUni>
+  <infraInfra>
+    <!-- Interface Policies -->
+    
+    <!-- Host Link Level (Port) Policy -->
+    <!-- fecMode "inherit" The switch uses FEC based on the port transceiver type. All copper CR4 transceivers have RSFEC enabled and fiber optic transceivers have FEC disabled. -->
+ 
+    <fabricHIfPol status="" ownerTag="" ownerKey="" 
+          speed="inherit" 
+          name="LINK-POLICY-NEG-ON" 
+          linkDebounce="100" 
+          fecMode="inherit" 
+          dn="uni/infra/hintfpol-LINK-POLICY-NEG-ON" 
+          descr="" 
+          autoNeg="on"
+    />
+    
+        
+    <fabricHIfPol status="" ownerTag="" ownerKey="" 
+          speed="inherit" 
+          name="LINK-POLICY-NEG-OFF" 
+          linkDebounce="100" 
+          fecMode="inherit" 
+          dn="uni/infra/hintfpol-LINK-POLICY-NEG-OFF" 
+          descr="" 
+          autoNeg="off"
+    />
+    
+    <!-- Fibre Channel Interface Policy (FCOE) -->
+    <!-- Slow Drain Policy (FCOE) -->
+    <!-- Priority Flow Control (FCOE) -->
+    
+    <!-- CDP & LLDP -->
+    <cdpIfPol status="" ownerTag="" ownerKey="" 
+          name="CDP-OFF" 
+          dn="uni/infra/cdpIfP-CDP-OFF" 
+          descr="cdp is disabled" 
+          adminSt="enabled"
+    />
+        
+    <cdpIfPol status="" ownerTag="" ownerKey="" 
+          name="CDP-ON" 
+          dn="uni/infra/cdpIfP-CDP-ON" 
+          descr="cdp is enabled" 
+          adminSt="enabled"
+    />
+        
+    <lldpIfPol status="" ownerTag="" ownerKey="" 
+          name="LLDP-ON" 
+          dn="uni/infra/lldpIfP-LLDP-ON" 
+          descr="lldp is enabled" 
+          adminTxSt="enabled" 
+          adminRxSt="enabled"
+    />
+    
+    <lldpIfPol status="" ownerTag="" ownerKey="" 
+          name="LLDP-OFF" 
+          dn="uni/infra/lldpIfP-LLDP-OFF" 
+          descr="lldp is disabled" 
+          adminTxSt="disabled" 
+          adminRxSt="disabled"
+    />
+    
+    <!-- LACP Port Channel Policy -->
+    <lacpLagPol status="" ownerTag="" ownerKey="" 
+          name="LACP-STANDARD" 
+          mode="off"  
+          minLinks="1" 
+          maxLinks="16" 
+          dn="uni/infra/lacplagp-LACP-STANDARD" 
+          descr="Static Channel On min 1 Max 16 LACP fast select hot standby ports  LACP graceful converg LACP suspend individual" 
+          ctrl="fast-sel-hot-stdby,graceful-conv,susp-individual" 
+    />
+    
+    <!-- LACP Port Channel Policy -->
+    <lacpLagPol status="" ownerTag="" ownerKey="" 
+          name="LACP-MACPIN" 
+          mode="mac-pin"  
+          minLinks="1" 
+          maxLinks="16" 
+          dn="uni/infra/lacplagp-LACP-STANDARD" 
+          descr="MacPin min 1 Max 16 LACP fast select hot standby ports  LACP graceful converg LACP suspend individual" 
+          ctrl="fast-sel-hot-stdby,graceful-conv,susp-individual" 
+    />
+
+    <!-- Port Channel Member Policy -->
+          
+    <!-- STP BPDU (Spanning Tree Interface Policy) -->      
+    <stpIfPol status="" ownerTag="" ownerKey="" 
+          name="STP-BPDU-GUARD-FILTER-ON" 
+          dn="uni/infra/ifPol-STP-BPDU-GUARD-FILTER-ON"
+          descr="STP BPDU Guard and Filter Enabled" 
+          ctrl="3" 
+          childAction=""
+    />
+    
+    <!-- Storm Control -->
+    <stormctrlIfPol status="" ownerTag="" ownerKey="" 
+          name="STORMCONTROL-ALL-TYPES" 
+          dn="uni/infra/stormctrlifp-STORMCONTROL-ALL-TYPES"
+          descr="broadcast multicast or unknown unicast traffic"
+          type="all"  
+          ratePps="unspecified" 
+          burstPps="unspecified"
+          rate="100.000000" 
+          burstRate="100.000000" 
+          
+    />
+    
+    <!-- Data Plane Policing -->
+    
+    <!-- Mis-Cabling Protocol (MCP) -->
+    <mcpIfPol status="" ownerTag="" ownerKey="" 
+          name="MCP-ON" 
+          dn="uni/infra/mcpIfP-MCP-ON" 
+          descr="MCP enabled" 
+          adminSt="enabled"
+    />
+          
+    <mcpIfPol status="" ownerTag="" ownerKey="" 
+          name="MCP-OFF" 
+          dn="uni/infra/mcpIfP-MCP-OFF" 
+          descr="MCP disabled" 
+          adminSt="disabled"
+    />
+          
+    <!-- Layer 2 Interface Policy -->
+    <l2IfPol status="" ownerTag="" ownerKey="" name="L2-VLAN-SCOPE-GLOBAL"  
+          vlanScope="0" 
+          dn="uni/infra/l2IfP-L2-VLAN-SCOPE-GLOBAL" 
+          descr="Sets the VLAN encapsulation value to map only to a single EPG per leaf" 
+    />
+    
+    <l2IfPol status="" ownerTag="" ownerKey="" name="L2-VLAN-SCOPE-PORTLOCAL"  
+          vlanScope="1" 
+          dn="uni/infra/l2IfP-L2-VLAN-SCOPE-PORTLOCAL" 
+          descr="Allows allocation of separate Port and Vlan translation entries in both ingress and egress directions" 
+    />
+          
+    <!-- Port Security -->
+    <l2PortSecurityPol status="" ownerTag="" ownerKey="" 
+          name="PORT-SECURITY-DISABLED"
+          maximum="0"
+          violation="protect"
+          dn="uni/infra/portsecurityP-PORT-SECURITY-DISABLED" 
+          descr="Port Security Disabled  No Connected Host Limit" 
+    />
+    
+    <!-- Firewall Policy (AVS) -->
+  
+    
+  </infraInfra>
+</polUni>
