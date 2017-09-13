@@ -40,3 +40,14 @@ Use:
 3. Adjust the json file for changes per host - server name (var named esxi-server-name but could be renamed) and the port ranges the server uses on all specified switches.
 4. run the playbook as ansible-playbook create-esxi-vpc-host.yml --extra-vars "@create-esxi-vpc-host-params.json"
 
+Keywords:
+aci_accessport_block (infra:PortBlk)
+aci_accessport_selector (infra:HPortS)
+aci_accessport_selector_to_policy_group (infra:RssAccBaseGrp)
+aci_intf_profile (infra:AccPortGrp)
+aci_intf_profile_to_accessport_selector (infra:RssAccPortP)
+aci_leaf_interface (infra:AccPortP)
+aci_switch_leaf_profile (infra:NodeP)
+aci_switch_leaf_selector (infra:LeafS)
+aci_switch_leaf_selector_node_block (infra:NodeBlk) -- not aci_node_block
+
