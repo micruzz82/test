@@ -1,0 +1,98 @@
+# Playbook to create ESXi Hosts
+#
+# ansible-playbook create-esxi-vpc-host.yml --extra-vars "@create-esxi-vpc-host-params.json"
+#
+# Requirements:
+# VMM Domain & DVS Created
+# VMware Data Center created on vCenter matching above
+# VMware DC Cluster created on vCenter
+#
+#
+- name: ESXi Host VPC Interface Setup
+  hosts: apic
+  connection: local
+  gather_facts: no
+
+  vars:
+    # comment out as external JSON in-use
+    #esxi_server_name : "ESXI-0102"
+    #vcenter_dvs : "DC-DVS-V012"
+    #leaf_interface_profile_name : "ESXI-VPC-Interface-Profile"
+    #port_from_card : 1
+    #port_from_port : yy
+    #port_to_card : 1
+    #port_to_port : yy
+    #leaf_switch_from : xxx
+    #leaf_switch_to : xxx
+      
+  tasks:
+
+   - name: Leaf Profile Setup (ESXi VPC Host Specific)
+     aci_vpc_policy_sw_int_setup:
+      validate_certs: no
+      hostname: "{{ inventory_hostname }}"
+      username: "{{ aci_username }}"
+      password: "{{ aci_password }}"
+
+      # Create Specific ESXi Host VPC Policy Group
+      #-- Port Policy --
+      # These individual policies [infraRs*Pol] must exist in the APIC
+      # Replace policy names where required with other existing policy. i.e. If LACP MAC Pinning is Not Required.
+      infraRsLacpPol : "LACP-MACPIN"
+      infraRsHIfPol  : "LINK-POLICY-NEG-OFF"
+      infraRsCdpIfPol  : "CDP-OFF"
+      infraRsMcpIfPol  : "MCP-ON"
+      infraRsLldpIfPol  : "LLDP-ON"
+      infraRsStpIfPol : "STP-BPDU-GUARD-FILTER-ON"
+      infraRsStormctrlIfPol  : "STORMCONTROL-ALL-TYPES"
+      infraRsL2IfPol : "L2-VLAN-SCOPE-GLOBAL"
+      infraRsL2PortSecurityPol  : "PORT-SECURITY-DISABLED"
+      #-- Data Plane Policy --
+      infraRsQosDppIfPol : "default"
+      infraRsQosEgressDppIfPol : "default"
+      infraRsQosIngressDppIfPol : "default"
+      #-- Monitoring Policy --
+      infraRsMonIfInfraPol : "default"
+      #-- Fibre Channel - FCOE --
+      infraRsFcIfPol : "default"
+      infraRsQosPfcIfPol : "default"
+      infraRsQosSdIfPol : "default"
+      #-- AEP --
+      infraRsAttEntP : "uni/infra/attentp-AEP-VMM-{{vcenter_dvs}}"
+
+      # Create\Access Generic 'Leaf Interface Profile' [infraAccPortP] For VMware ESXi Hosts 
+      # where same switches are used for selected ports for these ESXi hosts
+      interface_profile_name : "{{leaf_interface_profile_name}}"
+      interface_profile_description : "Generic Interface Policy For VMware ESXi Hosts where same switches are used for selected ports for these ESXi hosts"
+
+      # Create Specific ESXi Host (Interface) 'Access Port Selector'[infraHPortS] Policy
+      access_port_selector_name : "{{esxi_server_name}}-VPC-Ports"
+      access_port_selector_description : "{{esxi_server_name}} VPC Ports"
+      access_port_selector_type : "range"
+
+      # Select The Interfaces That This ESXi Host Will Connect To [infraPortBlk]
+      port_block_from_card : "{{port_from_card}}"
+      port_block_from_port : "{{port_from_port}}"
+      port_block_to_card :   "{{port_to_card}}"
+      port_block_to_port :   "{{port_to_port}}"
+
+      # Select The Specific ESXi Host 'VPC Interface Policy Group' [infraAccBndlGrp]
+      access_policy_group_name: "ESXI-VPC-POLICY-{{esxi_server_name}}"
+      access_policy_group_fexid: 101
+
+      # [infraNodeP]
+      switch_profile_name : "Default-Leaf-Profile"
+      # [infraLeafS]
+      switch_selector_name : "Leaf-Selector-S{{leaf_switch_from}}-S{{leaf_switch_to}}"
+      switch_selector_type : "range"
+      # [infraNodeBlk]
+      switch_block_from : "{{leaf_switch_from}}" 
+      switch_block_to : "{{leaf_switch_to}}" 
+
+     delegate_to: localhost
+
+    # uncomment next two lines for debugging 
+     #register: retVal
+   #- debug: var=retVal
+
+

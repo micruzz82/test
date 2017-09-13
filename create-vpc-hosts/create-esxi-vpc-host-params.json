@@ -1,0 +1,15 @@
+{
+    
+    "_comment_1_" : "these k:v's are usually static for particular host types per designated switch pair",
+    "vcenter_dvs" : "DC-DVS-V012",
+    "leaf_interface_profile_name" : "ESXI-VPC-Interface-Profile",
+    "leaf_switch_from" : 110,
+    "leaf_switch_to" : 111,
+
+    "_comment_2_" : "next k:v's are unique per host",
+    "esxi_server_name" :"ESXI-0126",
+    "port_from_card" : 1,
+    "port_from_port" : 1,
+    "port_to_card" : 1,
+    "port_to_port" : 4
+}
