@@ -79,7 +79,7 @@
           mode="mac-pin"  
           minLinks="1" 
           maxLinks="16" 
-          dn="uni/infra/lacplagp-LACP-STANDARD" 
+          dn="uni/infra/lacplagp-LACP-MACPIN" 
           descr="MacPin min 1 Max 16 LACP fast select hot standby ports  LACP graceful converg LACP suspend individual" 
           ctrl="fast-sel-hot-stdby,graceful-conv,susp-individual" 
     />
