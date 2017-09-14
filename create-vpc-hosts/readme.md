@@ -1,5 +1,7 @@
 Creates vPC hosts with switches, ports and policies.
 
+see related blog at https://haystacknetworks.com/scripting-vpc-hosts-esxi-hyper-v-switches-ports-policies-creation-aci-ansible-playbooks
+
 Description: 
         Creates Leaf Interface Profile where provided does not exist. - Can be shared/contain N 'Access Port Selectors'
          A 'VPC Interface Policy Group' is created for the given single host. 
