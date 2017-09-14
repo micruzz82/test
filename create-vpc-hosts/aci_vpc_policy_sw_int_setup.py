@@ -237,11 +237,15 @@ class CiscoAPIC(object):
                         )
 
         self.result['postResult'] = json.loads(resp.read())
+        self.result['postResult'] = self.request['jsonPayload']
 
 
     ###
     # Creates a Leaf Interface Profile [infraAccPortP] with selected ports
     # and binds to a Specific Interface Policy Group [infraAccBndlGrp]
+    #
+    # Need to add check for self.params['access_port_selector_type'] == ALL
+    # currently softcoded in playbook.
     ###
     def createInterfaceProfile(self):
 
@@ -256,7 +260,15 @@ class CiscoAPIC(object):
 
         infraPortBlk =  { 
             "attributes"    :   { 
-                "name"        : 'portBlock1', 
+                "name"        : "portBlock-"+
+                                    str(self.params['port_block_from_card']) +
+                                    "-" +
+                                    str(self.params['port_block_from_port']) +
+                                    "-" +
+                                    str(self.params['port_block_to_card']) +
+                                    "-" +
+                                    str(self.params['port_block_to_port']),
+
                 "descr"       : "",
                 "fromPort"    : str(self.params['port_block_from_port']),
                 "fromCard"    : str(self.params['port_block_from_card']),
@@ -396,6 +408,9 @@ class CiscoAPIC(object):
     ####
     # Creates a switch profile and binds switches (leaf selector)
     # infraNodeP =>> infraLeafS =>> infraNodeBlk
+    #
+    #  Need to add check for self.params['switch_selector_type'] == ALL
+    #  currently softcoded in playbook.
     ####
     def createSwitchProfile(self):
         
