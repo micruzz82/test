@@ -24,13 +24,8 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# ansible-playbook mtenant.yml --extra-vars "customer_id=74 tenant=PAN........."
-#
-#
 
-
-- name: CTAC Customer Tenant Deployment - Basic Tenant\BD\VRF\VID\EPG\AEP-Assignment
+- name: Customer Tenant Deployment - Basic Tenant\BD\VRF\VID\EPG\AEP-Assignment
   hosts: all
   connection: local
   gather_facts: no
