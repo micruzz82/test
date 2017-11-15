@@ -1,0 +1,361 @@
+#
+# Author : Haystack Networks Ltd 
+#        : www.haystacknetworks.com
+#
+# Copyright 2017 Haystack Networks Ltd, UK
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#    * Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#    * Redistributions in binary form must reproduce the above copyright notice,
+#      this list of conditions and the following disclaimer in the documentation
+#      and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# ansible-playbook mtenant.yml --extra-vars "customer_id=74 tenant=PAN........."
+#
+#
+
+
+- name: CTAC Customer Tenant Deployment - Basic Tenant\BD\VRF\VID\EPG\AEP-Assignment
+  hosts: all
+  connection: local
+  gather_facts: no
+
+
+  vars:
+    aci_login: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: "{{ lookup('env', 'ANSIBLE_NET_USERNAME') }}"
+      password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}"
+      validate_certs: no
+
+    customer_id:      '{{ _customer_id }}'                       # i.e. 100
+    tenant_name:      'TEN_{{ _tenant_shortname|upper }}'        # i.e. ABC
+    vrf_name:         '{{ _vrf_name|upper }}'                    # i.e. VRF_ABC
+    bd_name:          '{{ _bd_name|upper }}'                     # i.e. BD_ABC_XYZ
+    epg_name:         '{{ _epg_name|upper}}'                     # i.e. EPG_ABC_XYZ
+    vlan_id:          '{{ _vlan_id }}'                           # number
+    epg_aix:          '{{ _epg_aix}}'                             # TRUE/FALSE...
+    epg_tdi:          '{{ _epg_tdi}}'                             # TRUE/FALSE...
+    epg_esx:          '{{ _epg_esx}}'                             # TRUE/FALSE...
+    epg_hpv:          '{{ _epg_hpv}}'                             # TRUE/FALSE...
+    epg_bm:           '{{ _epg_bm}}'                              # TRUE/FALSE...
+    epg_l2:           '{{ _epg_l2}}'                              # TRUE/FALSE...
+    epg_fw:           '{{ _epg_fw}}'                              # TRUE/FALSE...
+    epg_f5:           '{{ _epg_f5}}'                              # TRUE/FALSE...
+    
+    app_profile:      'APP_NET_CENTRIC'                         # statically configured on APIC
+    aep_bm_name:      'AEP_Bare_Metal_Domain'                   # statically configured on APIC
+    aep_esx_name:     'AEP_ESX_Domain'
+    aep_hpv_name:     'AEP_HPV_Domain'
+    aep_tdi_name:     'AEP_TDI_Domain'
+    aep_aix_name:     'AEP_AIX_Domain'
+    aep_l2_name:      'AEP_L2_Domain'
+    aep_fw_name:      'AEP_FW_Domain'
+    aep_f5_name:      'AEP_F5_Domain'
+
+  tasks:
+
+  - name: Create Tenant uni/tn-'{{ tenant_name }}'
+    aci_tenant:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      description: 'Customer {{tenant_name|upper}}'
+      state: present
+    delegate_to: localhost
+
+  - name: Create VRF (context) in uni/tn-{{ tenant_name }}
+    aci_vrf:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      vrf_name: '{{ vrf_name }}'
+      state: present
+    delegate_to: localhost
+
+  - name: Create Bridge Domain in uni/tn-{{ tenant_name }}
+    aci_bd:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      vrf: '{{ vrf_name }}'
+      bd: '{{ bd_name }}'
+      limit_ip_learn: yes             # BD only learns IP host addrs where they match a configured subnet
+      enable_routing: no              # inital deployment L2 only
+      l2_unknown_unicast: flood       # for L2 with l3 gw outside fabric - chg to default (proxy) when converting to L3 
+      arp_flooding: yes               # enabled for l2_unknown_unicast to be set to flood
+      state: present
+    delegate_to: localhost
+
+  - name: Create Application Profile (One Per Tenant for Network Centric Deployment)
+    aci_ap:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+    delegate_to: localhost
+
+  - name: Create EPG per Bridge Domain for Network Centric Deployment
+    aci_epg:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         # BD: item.1.name
+      bridge_domain: '{{ bd_name }}' 
+      state: present
+    delegate_to: localhost
+
+  # bind EPG to physical domains  
+  - name: Bind Physical Domain (AIX) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'AIX_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_aix|upper == "YES" 
+
+  - name: Bind Physical Domain (TDI) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'TDI_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_tdi|upper == "YES" 
+
+  - name: Bind Physical Domain (ESX) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'ESX_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_esx|upper == "YES" 
+
+  - name: Bind Physical Domain (HPV) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'HPV_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_hpv|upper == "YES" 
+
+  - name: Bind Physical Domain (BareMetal) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                        
+      domain_profile: 'Bare_Metal_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_bm|upper == "YES" 
+
+  - name: Bind Physical Domain (L2) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'L2_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_l2|upper == "YES" 
+
+  - name: Bind Physical Domain (FW) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'FW_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_fw|upper == "YES" 
+
+  - name: Bind Physical Domain (F5) to each EPG
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ tenant_name }}'
+      app_profile: '{{ app_profile }}'
+      epg: '{{ epg_name }}'                         
+      domain_profile: 'F5_Phys_Domain' 
+      domain_type: phys
+      state: present
+    delegate_to: localhost
+    when: epg_f5|upper == "YES" 
+
+  # Assign EPG to host type AEP (BM, ESX, TDI, HPV, AIX)
+  - name: Assign EPG To The BM AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_bm_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_bm|upper == "TRUE"
+
+  - name: Assign EPG To The ESX AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_esx_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_esx|upper == "TRUE"
+
+  - name: Assign EPG To The HPV AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_hpv_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_hpv|upper == "TRUE"
+  
+  - name: Assign EPG To The TDI AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_tdi_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_tdi|upper == "TRUE"
+  
+  - name: Assign EPG To The AIX AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_aix_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_aix|upper == "TRUE"
+
+# external devices (Nexus L2Out, Ext. FW, Ext F5) - Connect EPG via AEP with vlan id for related service
+
+  - name: Assign EPG To The L2 Legacy Nexus AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_l2_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_l2|upper == "TRUE"
+
+  - name: Assign EPG To The External FW AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_fw_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_fw|upper == "TRUE"
+
+  - name: Assign EPG To The External F5 AEP With Assigned VLANs
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/infra/attentp-{{ aep_f5_name }}.xml
+      content: |
+        <infraGeneric name="default">
+          <infraRsFuncToEpg 
+            tDn="uni/tn-{{ tenant_name }}/ap-{{ app_profile }}/epg-{{ epg_name }}" 
+            primaryEncap="unknown" 
+            mode="regular" 
+            instrImedcy="lazy" 
+            encap="vlan-{{ vlan_id }}"
+            />
+        </infraGeneric>
+    delegate_to: localhost
+    when: epg_f5|upper == "TRUE"
