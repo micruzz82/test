@@ -38,10 +38,10 @@
       password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}"
       validate_certs: no
 
-    customer_id:      '{{ _customer_id }}'                       # i.e. 100
-    tenant_name:      'TEN_{{ _tenant_shortname|upper }}'        # i.e. ABC
-    vrf_name:         '{{ _vrf_name|upper }}'                    # i.e. VRF_ABC
-    bd_name:          '{{ _bd_name|upper }}'                     # i.e. BD_ABC_XYZ
+    customer_id:      '100'                       # i.e. 100
+    tenant_name:      'TEN_ABC'        # i.e. ABC
+    vrf_name:         'VRF_ABC'                    # i.e. VRF_ABC
+    bd_name:          'BD_ABC'                     # i.e. BD_ABC_XYZ
     epg_name:         '{{ _epg_name|upper}}'                     # i.e. EPG_ABC_XYZ
     app_profile:      'APP_NET_CENTRIC'                         # statically configured on APIC
 
