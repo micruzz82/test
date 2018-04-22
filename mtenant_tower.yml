@@ -42,7 +42,7 @@
     tenant_name:      'TEN_ABC'        # i.e. ABC
     vrf_name:         'VRF_ABC'                    # i.e. VRF_ABC
     bd_name:          'BD_ABC'                     # i.e. BD_ABC_XYZ
-    epg_name:         '{{ _epg_name|upper}}'                     # i.e. EPG_ABC_XYZ
+    epg_name:         'EPG_ABC'                     # i.e. EPG_ABC_XYZ
     app_profile:      'APP_NET_CENTRIC'                         # statically configured on APIC
 
   tasks:
