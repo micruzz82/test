@@ -38,16 +38,9 @@
       password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}"
       validate_certs: no
 
-    customer_id:      '100'                       # i.e. 100
-    tenant_name:      'TEN_ABC'        # i.e. ABC
-    vrf_name:         'VRF_ABC'                    # i.e. VRF_ABC
-    bd_name:          'BD_ABC'                     # i.e. BD_ABC_XYZ
-    epg_name:         'EPG_ABC'                     # i.e. EPG_ABC_XYZ
-    app_profile:      'APP_NET_CENTRIC'                         # statically configured on APIC
-
   tasks:
 
-  - name: Create Tenant
+  - name: Create Tenant {{ tenant_name }}
     aci_tenant:
       <<: *aci_login
       tenant: '{{ tenant_name }}'
@@ -55,7 +48,7 @@
       state: present
     delegate_to: localhost
 
-  - name: Create VRF
+  - name: Create VRF {{ vrf_name }}
     aci_vrf:
       <<: *aci_login
       tenant: '{{ tenant_name }}'
@@ -63,7 +56,7 @@
       state: present
     delegate_to: localhost
 
-  - name: Create Bridge Domain
+  - name: Create Bridge Domain {{ bd_name }}
     aci_bd:
       <<: *aci_login
       tenant: '{{ tenant_name }}'
@@ -76,14 +69,14 @@
       state: present
     delegate_to: localhost
 
-  - name: Create Application Profile (One Per Tenant for Network Centric Deployment)
+  - name: Create Application Profile {{ app_profile }}
     aci_ap:
       <<: *aci_login
       tenant: '{{ tenant_name }}'
       app_profile: '{{ app_profile }}'
     delegate_to: localhost
 
-  - name: Create EPG per Bridge Domain for Network Centric Deployment
+  - name: Create EPG {{ epg_name }}
     aci_epg:
       <<: *aci_login
       tenant: '{{ tenant_name }}'
